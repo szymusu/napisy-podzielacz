@@ -54,11 +54,38 @@
         return text.substring(0, index) + "\n" + text.substring(index + 1)
     }
 
+    function splitTest(index, text) {
+        let fails = 0
+        const [line1, line2] = text.split("\n")
+        // if ()
+    }
+
     function splitOnclick() {
         const lines = document.getElementById("in").value.split("\n")
-        let outStr = ""
+
+        const subs = []
         for (let i = 0; i < lines.length; i++) {
-            outStr += `${i ? "\n" : ""}${lines[i++]}\n${lines[i++]}\n${split(lines[i++])}\n`
+            subs.push({
+                index: lines[i++],
+                time: lines[i++],
+                text: lines[i++],
+            })
+        }
+
+        for (let i = 0; i < subs.length; i++) {
+            const sub = subs[i]
+            if (i + 1 < subs.length && sub.text.length > 3 && sub.text[sub.text.length - 2] === " ") {
+                console.log(i)
+                subs[i + 1].text = sub.text[sub.text.length - 1] + " " + subs[i + 1].text
+                sub.text = sub.text.substring(0, sub.text.length - 2)
+            }
+
+            sub.text = split(sub.text)
+        }
+
+        let outStr = ""
+        for (const sub of subs) {
+            outStr += `${sub.index}\n${sub.time}\n${sub.text}\n\n`
         }
         document.getElementById("out").value = outStr
     }
