@@ -5,7 +5,7 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Rozdzielacz napisów v1.2</title>
+    <title>Rozdzielacz napisów v1.3</title>
     <style>
         main {
             display: flex;
@@ -44,6 +44,11 @@
     </div>
 </main>
 
+<div style="padding: 1rem; border: solid red 1px">
+    Wykryte błędy: <span style="font-weight: bold">1</span>
+    <ul></ul>
+</div>
+
 <script>
 
     function split(text) {
@@ -55,12 +60,71 @@
     }
 
     function splitTest(index, text) {
-        let fails = 0
+        const fails = []
         const [line1, line2] = text.split("\n")
-        // if ()
+
+        if (line1.length > 40) {
+            fails.push(`${index}: Za długa linijka 1: ${line1.length} znaków`)
+        }
+        if (line1[line1.length - 2] === " ") {
+            fails.push(`${index}: Linijka 1 kończy się jednoznakowym słowem: ${line1[line1.length - 1]}`)
+        }
+        if (line1[0] === " ") {
+            fails.push(`${index}: Linijka 1 zaczyna się spacją`)
+        }
+        if (line1[line1.length - 1] === " ") {
+            fails.push(`${index}: Linijka 1 kończy się spacją`)
+        }
+
+        if (line2) {
+            if (line1.length > line2.length) {
+                fails.push(`${index}: Linijka 1 dłuższa niż linijka 2`)
+            }
+            if (line2[line2.length - 2] === " ") {
+                fails.push(`${index}: Linijka 2 kończy się jednoznakowym słowem: ${line2[line2.length - 1]}`)
+            }
+            if (line2[0] === " ") {
+                fails.push(`${index}: Linijka 2 zaczyna się spacją`)
+            }
+            if (line2[line2.length - 1] === " ") {
+                fails.push(`${index}: Linijka 2 kończy się spacją`)
+            }
+        }
+
+        if (fails.length) {
+            console.group(`${index}: ${fails.length} błędów:`)
+            for (const fail of fails) {
+                console.log(fail)
+            }
+            console.groupEnd()
+        }
+        return fails
+    }
+
+    function fullTextTest(subs) {
+        let textIn = "", textOut = ""
+        for (const sub of subs) {
+            textIn += sub.textIn + " "
+            textOut += sub.text + " "
+        }
+        textIn = textIn.replaceAll("\n", " ")
+        textOut = textOut.replaceAll("\n", " ")
+        for (let i = 0; i < Math.max(textIn.length, textOut.length); i++) {
+            if (textIn[i] !== textOut[i]) {
+                return [
+                    textIn.substring(Math.max(0, i - 10), Math.min(textIn.length - 1, i + 10)),
+                    " != ",
+                    textOut.substring(Math.max(0, i - 10), Math.min(textOut.length - 1, i + 10))
+                ]
+            }
+        }
+        return []
     }
 
     function splitOnclick() {
+        document.querySelector("span").innerText = ""
+        document.querySelector("ul").innerHTML = ""
+
         const lines = document.getElementById("in").value.split("\n")
 
         const subs = []
@@ -69,19 +133,32 @@
                 index: lines[i++],
                 time: lines[i++],
                 text: lines[i++],
+                textIn: lines[i - 1],
             })
         }
 
         for (let i = 0; i < subs.length; i++) {
             const sub = subs[i]
-            if (i + 1 < subs.length && sub.text.length > 3 && sub.text[sub.text.length - 2] === " ") {
-                console.log(i)
-                subs[i + 1].text = sub.text[sub.text.length - 1] + " " + subs[i + 1].text
-                sub.text = sub.text.substring(0, sub.text.length - 2)
-            }
+            if (i + 1 < subs.length && sub.text.length > 3) {
+                let spaceIndex = sub.text.length
+                while (sub.text[spaceIndex - 2] === " ") spaceIndex -= 2
 
+                if (spaceIndex !== sub.text.length) {
+                    subs[i + 1].text = sub.text.substring(spaceIndex + 1) + " " + subs[i + 1].text
+                    sub.text = sub.text.substring(0, spaceIndex)
+                }
+            }
             sub.text = split(sub.text)
         }
+
+        const fails = []
+        for (const sub of subs) {
+            fails.push(...splitTest(sub.index, sub.text))
+        }
+        fails.push(...fullTextTest(subs))
+        console.log("\n" + fails.length + " błędów")
+        document.querySelector("span").innerText = fails.length.toString()
+        document.querySelector("ul").innerHTML = fails.reduce((html, fail) => `${html}<li>${fail}</li>`)
 
         let outStr = ""
         for (const sub of subs) {
