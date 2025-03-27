@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Rozdzielacz napisów v1.2</title>
+    <style>
+        main {
+            display: flex;
+            gap: 3rem;
+        }
+
+        div {
+            width: 40%;
+        }
+
+        textarea {
+            width: 100%;
+        }
+
+        button {
+            font-size: x-large;
+            font-weight: 700;
+            display: block;
+            padding: 1rem;
+            align-self: center;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Rozdzielacz napisów</h1>
+<main>
+    <div>
+        <h3>Tu wklej</h3>
+        <textarea id="in" rows="40"></textarea>
+    </div>
+    <button onclick="splitOnclick()">rozdziel -></button>
+    <div>
+        <h3>Stąd skopiuj</h3>
+        <textarea id="out" rows="40" readonly></textarea>
+    </div>
+</main>
+
+<script>
+
+    function split(text) {
+        if (text.length < 40) return text
+
+        let index = text.lastIndexOf(" ", Math.floor(text.length / 2) - 1)
+        while (text[index - 2] === " ") index -= 2
+        return text.substring(0, index) + "\n" + text.substring(index + 1)
+    }
+
+    function splitOnclick() {
+        const lines = document.getElementById("in").value.split("\n")
+        let outStr = ""
+        for (let i = 0; i < lines.length; i++) {
+            outStr += `${i ? "\n" : ""}${lines[i++]}\n${lines[i++]}\n${split(lines[i++])}\n`
+        }
+        document.getElementById("out").value = outStr
+    }
+
+</script>
+
+</body>
+</html>
