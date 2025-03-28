@@ -125,7 +125,9 @@
         document.querySelector("span").innerText = ""
         document.querySelector("ul").innerHTML = ""
 
-        const lines = document.getElementById("in").value.split("\n")
+        const inputValue = document.getElementById("in").value
+        if (!inputValue) return
+        const lines = inputValue.split("\n")
 
         const subs = []
         for (let i = 0; i < lines.length; i++) {
@@ -158,7 +160,7 @@
         fails.push(...fullTextTest(subs))
         console.log("\n" + fails.length + " błędów")
         document.querySelector("span").innerText = fails.length.toString()
-        document.querySelector("ul").innerHTML = fails.reduce((html, fail) => `${html}<li>${fail}</li>`)
+        document.querySelector("ul").innerHTML = fails.reduce((html, fail) => `${html}<li>${fail}</li>`, "")
 
         let outStr = ""
         for (const sub of subs) {
